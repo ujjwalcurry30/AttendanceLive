@@ -27,7 +27,7 @@ const Login = ({ onLogin }) => {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const response = await axios.post('http://localhost:6060/api/auth/login', formData);
       onLogin(response.data.token, {
         username: response.data.username,
         email: response.data.email

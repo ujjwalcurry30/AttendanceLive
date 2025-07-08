@@ -18,28 +18,30 @@ const Dashboard = ({ user, onLogout }) => {
   }, []);
 
   const fetchAttendance = async () => {
+    setLoading(true);
+    setError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/attendance', {
+      const response = await axios.get('http://localhost:6060/api/attendance', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAttendance(response.data);
-      
       // Check if current user is punched in
       const userAttendance = response.data.find(a => a.username === user.username);
       setIsPunchedIn(!!userAttendance);
     } catch (err) {
       setError('Failed to fetch attendance data');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handlePunchIn = async () => {
     setPunchLoading(true);
     setError('');
-    
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/attendance/punch-in', {}, {
+      await axios.post('http://localhost:6060/api/attendance/punch-in', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setIsPunchedIn(true);
@@ -54,10 +56,9 @@ const Dashboard = ({ user, onLogout }) => {
   const handlePunchOut = async () => {
     setPunchLoading(true);
     setError('');
-    
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/attendance/punch-out', {}, {
+      await axios.post('http://localhost:6060/api/attendance/punch-out', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setIsPunchedIn(false);
