@@ -1,0 +1,106 @@
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+}
+
+.register-header {
+  margin-bottom: 30px;
+}
+
+.register-header h1 {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  background: linear-gradient(135deg, #fff 0%, #f0f0f0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.register-header p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 1.1rem;
+}
+
+.register-form {
+  text-align: left;
+}
+
+.register-btn {
+  width: 100%;
+  margin-top: 20px;
+  padding: 14px;
+  font-size: 18px;
+}
+
+.register-btn.loading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.register-footer {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.register-footer p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+  .register-card {
+    padding: 20px;
+  }
+  
+  .register-header h1 {
+    font-size: 2rem;
+  }
+  
+  .register-header p {
+    font-size: 1rem;
+  }
+}
+
+/* Animation for form elements */
+.register-form .form-group {
+  animation: slideInUp 0.6s ease-out;
+}
+
+.register-form .form-group:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.register-form .form-group:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.register-form .form-group:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.register-form .form-group:nth-child(4) {
+  animation-delay: 0.4s;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 
