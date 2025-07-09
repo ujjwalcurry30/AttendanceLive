@@ -4,12 +4,17 @@
   align-items: center;
   min-height: 100vh;
   padding: 20px;
+  background-image: url('/AttendanceSystemBackgroundDesign.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .login-card {
   width: 100%;
   max-width: 400px;
   text-align: center;
+  margin-right: -500px;
 }
 
 .login-header {
