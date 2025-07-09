@@ -9,6 +9,7 @@ A full-stack web application to manage employee attendance with punch in/out fun
 - JWT-based authentication
 - Punch In/Out attendance system
 - Live attendance list
+- **Late Arrivals and Early Leaves reports** (with date selection)
 - Modern, responsive React frontend
 - MongoDB database
 
@@ -53,7 +54,7 @@ PORT=5000
 ```bash
 node index.js
 ```
-- You should see `MongoDB connected` and `Server running on port 5000`.
+- You should see `MongoDB connected` and `Server running on port 6060`.
 
 ---
 
@@ -79,45 +80,20 @@ npm run dev
 2. **Login** with your credentials.
 3. **Punch In/Out** to mark attendance.
 4. **View** the live attendance list.
+5. **Check Late Arrivals and Early Leaves reports**:
+   - Use the date picker at the top of the dashboard to select a date.
+   - The "Late Arrivals" report shows employees who punched in after 9:00 AM.
+   - The "Early Leaves" report shows employees who punched out before 6:00 PM.
+
+---
+
+## Late Arrivals & Early Leaves Reports
+
+- **Late Arrivals:** Employees who punch in after 9:00 AM are listed here for the selected date.
+- **Early Leaves:** Employees who punch out before 6:00 PM are listed here for the selected date.
+- Use the date picker on the dashboard to view reports for any day.
 
 ---
 
 ## 5. Project Structure
 ```
-Attendance/
-├── backend/
-│   ├── index.js
-│   ├── models/
-│   ├── controllers/
-│   ├── routes/
-│   ├── middleware/
-│   └── .env
-├── src/
-│   ├── App.jsx
-│   ├── App.css
-│   ├── pages/
-│   │   ├── Login.jsx / Login.css
-│   │   ├── Register.jsx / Register.css
-│   │   └── Dashboard.jsx / Dashboard.css
-│   └── ...
-├── package.json
-└── README.md
-```
-
----
-
-## 6. Troubleshooting
-- **Registration failed:** Ensure MongoDB is running and the email/username is unique.
-- **API errors:** Check backend terminal for errors and verify `.env` settings.
-- **Frontend not loading:** Make sure both backend and frontend servers are running.
-
----
-
-## 7. Customization
-- Update styles in `src/App.css` and page-specific CSS files.
-- Backend logic can be extended in `backend/controllers/` and `backend/routes/`.
-
----
-
-## 8. License
-MIT
