@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaSignOutAlt, FaClock, FaUserClock, FaUsers, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaSignOutAlt, FaClock, FaUserClock, FaUsers, FaCheckCircle, FaTimesCircle, FaBell, FaUser, FaCog, FaChevronDown } from 'react-icons/fa';
 import axios from 'axios';
 import './Dashboard.css';
 
@@ -10,6 +10,9 @@ const Dashboard = ({ user, onLogout }) => {
   const [error, setError] = useState('');
   const [isPunchedIn, setIsPunchedIn] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     fetchAttendance();
@@ -17,35 +20,55 @@ const Dashboard = ({ user, onLogout }) => {
     return () => clearInterval(interval);
   }, []);
 
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (!event.target.closest('.notification-container')) {
+        setShowNotifications(false);
+      }
+      if (!event.target.closest('.user-menu-container')) {
+        setShowUserMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   const fetchAttendance = async () => {
+    setLoading(true);
+    setError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/api/attendance', {
+      const response = await axios.get('http://localhost:6060/api/attendance', {
         headers: { Authorization: `Bearer ${token}` }
       });
       setAttendance(response.data);
-      
       // Check if current user is punched in
       const userAttendance = response.data.find(a => a.username === user.username);
       setIsPunchedIn(!!userAttendance);
     } catch (err) {
       setError('Failed to fetch attendance data');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handlePunchIn = async () => {
     setPunchLoading(true);
     setError('');
-    
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/attendance/punch-in', {}, {
+      await axios.post('http://localhost:6060/api/attendance/punch-in', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setIsPunchedIn(true);
       fetchAttendance();
+      // Add notification
+      setNotifications(prev => [...prev, { id: Date.now(), message: 'Successfully punched in!', type: 'success' }]);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to punch in');
+      setNotifications(prev => [...prev, { id: Date.now(), message: 'Failed to punch in', type: 'error' }]);
     } finally {
       setPunchLoading(false);
     }
@@ -54,16 +77,18 @@ const Dashboard = ({ user, onLogout }) => {
   const handlePunchOut = async () => {
     setPunchLoading(true);
     setError('');
-    
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/attendance/punch-out', {}, {
+      await axios.post('http://localhost:6060/api/attendance/punch-out', {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setIsPunchedIn(false);
       fetchAttendance();
+      // Add notification
+      setNotifications(prev => [...prev, { id: Date.now(), message: 'Successfully punched out!', type: 'success' }]);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to punch out');
+      setNotifications(prev => [...prev, { id: Date.now(), message: 'Failed to punch out', type: 'error' }]);
     } finally {
       setPunchLoading(false);
     }
@@ -77,6 +102,10 @@ const Dashboard = ({ user, onLogout }) => {
     return new Date(date).toLocaleDateString();
   };
 
+  const removeNotification = (id) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
+
   return (
     <div className="dashboard-container">
       <nav className="dashboard-nav">
@@ -84,12 +113,92 @@ const Dashboard = ({ user, onLogout }) => {
           <FaClock className="nav-icon" />
           <h2>Attendance Manager</h2>
         </div>
-        <div className="nav-user">
-          <span>Welcome, {user.username}</span>
-          <button onClick={onLogout} className="btn btn-secondary logout-btn">
-            <FaSignOutAlt />
-            Logout
-          </button>
+        
+        <div className="nav-actions">
+          {/* Notifications */}
+          <div className="notification-container">
+            <button 
+              className="notification-btn"
+              onClick={() => setShowNotifications(!showNotifications)}
+            >
+              <FaBell />
+              {notifications.length > 0 && (
+                <span className="notification-badge">{notifications.length}</span>
+              )}
+            </button>
+            
+            {showNotifications && (
+              <div className="notification-dropdown">
+                <div className="notification-header">
+                  <h4>Notifications</h4>
+                  <button 
+                    className="clear-notifications"
+                    onClick={() => setNotifications([])}
+                  >
+                    Clear All
+                  </button>
+                </div>
+                <div className="notification-list">
+                  {notifications.length === 0 ? (
+                    <div className="no-notifications">No notifications</div>
+                  ) : (
+                    notifications.map(notification => (
+                      <div 
+                        key={notification.id} 
+                        className={`notification-item ${notification.type}`}
+                        onClick={() => removeNotification(notification.id)}
+                      >
+                        <span>{notification.message}</span>
+                        <button className="remove-notification">×</button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* User Menu */}
+          <div className="user-menu-container">
+            <button 
+              className="user-menu-btn"
+              onClick={() => setShowUserMenu(!showUserMenu)}
+            >
+              <div className="user-avatar">
+                <FaUser />
+              </div>
+              <span className="user-name">{user.username}</span>
+              <FaChevronDown className={`chevron ${showUserMenu ? 'rotated' : ''}`} />
+            </button>
+            
+            {showUserMenu && (
+              <div className="user-dropdown">
+                <div className="user-info">
+                  <div className="user-avatar-large">
+                    <FaUser />
+                  </div>
+                  <div className="user-details">
+                    <span className="user-full-name">{user.username}</span>
+                    <span className="user-email">{user.email}</span>
+                  </div>
+                </div>
+                <div className="dropdown-divider"></div>
+                <button className="dropdown-item">
+                  <FaUser />
+                  Profile
+                </button>
+                <button className="dropdown-item">
+                  <FaCog />
+                  Settings
+                </button>
+                <div className="dropdown-divider"></div>
+                <button onClick={onLogout} className="dropdown-item logout-item">
+                  <FaSignOutAlt />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 

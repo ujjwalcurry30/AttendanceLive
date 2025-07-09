@@ -36,14 +36,14 @@ const Register = ({ onLogin }) => {
     }
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/register', {
+      const response = await axios.post('http://localhost:6060/api/auth/register', {
         username: formData.username,
         email: formData.email,
         password: formData.password
       });
       
       // Auto-login after successful registration
-      const loginResponse = await axios.post('http://localhost:5000/api/auth/login', {
+      const loginResponse = await axios.post('http://localhost:6060/api/auth/login', {
         email: formData.email,
         password: formData.password
       });
