@@ -12,19 +12,62 @@ const Login = ({ onLogin }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [formErrors, setFormErrors] = useState({
+    email: '',
+    password: ''
+  });
+
+  const validate = (name, value) => {
+    switch (name) {
+      case 'email':
+        if (!value) return 'Email is required.';
+        // Simple email regex
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Invalid email address.';
+        return '';
+      case 'password':
+        if (!value) return 'Password is required.';
+        if (value.length < 6) return 'Password must be at least 6 characters.';
+        return '';
+      default:
+        return '';
+    }
+  };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
+    });
+    setFormErrors({
+      ...formErrors,
+      [name]: value ? '' : validate(name, value)
     });
     setError('');
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setFormErrors({
+      ...formErrors,
+      [name]: validate(name, value)
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+
+    const errors = {
+      email: validate('email', formData.email),
+      password: validate('password', formData.password)
+    };
+    setFormErrors(errors);
+    if (errors.email || errors.password) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const response = await axios.post('http://localhost:6060/api/auth/login', formData);
@@ -58,10 +101,13 @@ const Login = ({ onLogin }) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="form-input"
+              onBlur={handleBlur}
+              className={`form-input${formErrors.email ? ' input-error' : ''}`}
               placeholder="Enter your email"
-              required
             />
+            {formErrors.email && (
+              <div className="field-error">{formErrors.email}</div>
+            )}
           </div>
 
           <div className="form-group">
@@ -75,9 +121,9 @@ const Login = ({ onLogin }) => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="form-input password-input"
+                onBlur={handleBlur}
+                className={`form-input password-input${formErrors.password ? ' input-error' : ''}`}
                 placeholder="Enter your password"
-                required
               />
               <button
                 type="button"
@@ -87,6 +133,9 @@ const Login = ({ onLogin }) => {
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
+            {formErrors.password && (
+              <div className="field-error">{formErrors.password}</div>
+            )}
           </div>
 
           {error && (
