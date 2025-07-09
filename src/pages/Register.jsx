@@ -15,13 +15,55 @@ const Register = ({ onLogin }) => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [formErrors, setFormErrors] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  const validate = (name, value) => {
+    switch (name) {
+      case 'username':
+        if (!value) return 'Username is required.';
+        if (value.length < 3) return 'Username must be at least 3 characters.';
+        return '';
+      case 'email':
+        if (!value) return 'Email is required.';
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Invalid email address.';
+        return '';
+      case 'password':
+        if (!value) return 'Password is required.';
+        if (value.length < 6) return 'Password must be at least 6 characters.';
+        return '';
+      case 'confirmPassword':
+        if (!value) return 'Please confirm your password.';
+        if (value !== formData.password) return 'Passwords do not match.';
+        return '';
+      default:
+        return '';
+    }
+  };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: value
+    });
+    setFormErrors({
+      ...formErrors,
+      [name]: value ? '' : validate(name, value)
     });
     setError('');
+  };
+
+  const handleBlur = (e) => {
+    const { name, value } = e.target;
+    setFormErrors({
+      ...formErrors,
+      [name]: validate(name, value)
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -29,8 +71,14 @@ const Register = ({ onLogin }) => {
     setLoading(true);
     setError('');
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+    const errors = {
+      username: validate('username', formData.username),
+      email: validate('email', formData.email),
+      password: validate('password', formData.password),
+      confirmPassword: validate('confirmPassword', formData.confirmPassword)
+    };
+    setFormErrors(errors);
+    if (errors.username || errors.email || errors.password || errors.confirmPassword) {
       setLoading(false);
       return;
     }
@@ -78,10 +126,13 @@ const Register = ({ onLogin }) => {
               name="username"
               value={formData.username}
               onChange={handleChange}
-              className="form-input"
+              onBlur={handleBlur}
+              className={`form-input${formErrors.username ? ' input-error' : ''}`}
               placeholder="Enter your username"
-              required
             />
+            {formErrors.username && (
+              <div className="field-error">{formErrors.username}</div>
+            )}
           </div>
 
           <div className="form-group">
@@ -94,10 +145,13 @@ const Register = ({ onLogin }) => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              className="form-input"
+              onBlur={handleBlur}
+              className={`form-input${formErrors.email ? ' input-error' : ''}`}
               placeholder="Enter your email"
-              required
             />
+            {formErrors.email && (
+              <div className="field-error">{formErrors.email}</div>
+            )}
           </div>
 
           <div className="form-group">
@@ -111,10 +165,13 @@ const Register = ({ onLogin }) => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                className="form-input password-input"
+                onBlur={handleBlur}
+                className={`form-input password-input${formErrors.password ? ' input-error' : ''}`}
                 placeholder="Enter your password"
-                required
               />
+              {formErrors.password && (
+                <div className="field-error">{formErrors.password}</div>
+              )}
               <button
                 type="button"
                 className="password-toggle"
@@ -136,10 +193,13 @@ const Register = ({ onLogin }) => {
                 name="confirmPassword"
                 value={formData.confirmPassword}
                 onChange={handleChange}
-                className="form-input password-input"
+                onBlur={handleBlur}
+                className={`form-input password-input${formErrors.confirmPassword ? ' input-error' : ''}`}
                 placeholder="Confirm your password"
-                required
               />
+              {formErrors.confirmPassword && (
+                <div className="field-error">{formErrors.confirmPassword}</div>
+              )}
               <button
                 type="button"
                 className="password-toggle"
