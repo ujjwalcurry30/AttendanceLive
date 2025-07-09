@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaSignOutAlt, FaClock, FaUserClock, FaUsers, FaCheckCircle, FaTimesCircle, FaBell, FaUser, FaCog, FaChevronDown } from 'react-icons/fa';
+import { FaSignOutAlt, FaClock, FaUserClock, FaUsers, FaCheckCircle, FaTimesCircle, FaBell, FaUser, FaCog, FaChevronDown, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import axios from 'axios';
 import './Dashboard.css';
 
@@ -13,12 +13,21 @@ const Dashboard = ({ user, onLogout }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [lateArrivals, setLateArrivals] = useState([]);
+  const [earlyLeaves, setEarlyLeaves] = useState([]);
+  const [reportDate, setReportDate] = useState(new Date());
+  const [reportLoading, setReportLoading] = useState(false);
 
   useEffect(() => {
     fetchAttendance();
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    fetchLateArrivals();
+    fetchEarlyLeaves();
+  }, [reportDate]);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -91,6 +100,35 @@ const Dashboard = ({ user, onLogout }) => {
       setNotifications(prev => [...prev, { id: Date.now(), message: 'Failed to punch out', type: 'error' }]);
     } finally {
       setPunchLoading(false);
+    }
+  };
+
+  const fetchLateArrivals = async (date = reportDate) => {
+    setReportLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:6060/api/attendance/late-arrivals?date=${date.toISOString().slice(0,10)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setLateArrivals(response.data);
+    } catch (err) {
+      setLateArrivals([]);
+    } finally {
+      setReportLoading(false);
+    }
+  };
+  const fetchEarlyLeaves = async (date = reportDate) => {
+    setReportLoading(true);
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.get(`http://localhost:6060/api/attendance/early-leaves?date=${date.toISOString().slice(0,10)}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setEarlyLeaves(response.data);
+    } catch (err) {
+      setEarlyLeaves([]);
+    } finally {
+      setReportLoading(false);
     }
   };
 
@@ -203,6 +241,20 @@ const Dashboard = ({ user, onLogout }) => {
       </nav>
 
       <div className="dashboard-content">
+        {/* Date Picker for Reports */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+          <label htmlFor="report-date" style={{ color: 'white', fontWeight: 600 }}>Select Date for Reports:</label>
+          <input
+            id="report-date"
+            type="date"
+            value={reportDate.toISOString().slice(0, 10)}
+            onChange={e => {
+              const newDate = new Date(e.target.value);
+              setReportDate(newDate);
+            }}
+            style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '1rem' }}
+          />
+        </div>
         <div className="dashboard-grid">
           {/* Punch In/Out Card */}
           <div className="dashboard-card card punch-card">
@@ -280,6 +332,64 @@ const Dashboard = ({ user, onLogout }) => {
                       <div className="date-value">
                         {formatDate(record.punchIn)}
                       </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          {/* Late Arrivals Report Card */}
+          <div className="dashboard-card card attendance-card">
+            <div className="card-header">
+              <FaClock className="card-icon" />
+              <h3>Late Arrivals</h3>
+              <button onClick={() => fetchLateArrivals()} className="refresh-btn">↻</button>
+            </div>
+            <div className="attendance-list">
+              {reportLoading ? (
+                <div className="loading-message">Loading late arrivals...</div>
+              ) : lateArrivals.length === 0 ? (
+                <div className="empty-message">No late arrivals</div>
+              ) : (
+                lateArrivals.map((record, index) => (
+                  <div key={index} className="attendance-item">
+                    <div className="employee-info">
+                      <div className="employee-name">{record.username}</div>
+                      <div className="employee-email">{record.email}</div>
+                    </div>
+                    <div className="punch-time">
+                      <div className="time-label">Punched In:</div>
+                      <div className="time-value">{formatTime(record.punchIn)}</div>
+                      <div className="date-value">{formatDate(record.punchIn)}</div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+          {/* Early Leaves Report Card */}
+          <div className="dashboard-card card attendance-card">
+            <div className="card-header">
+              <FaClock className="card-icon" />
+              <h3>Early Leaves</h3>
+              <button onClick={() => fetchEarlyLeaves()} className="refresh-btn">↻</button>
+            </div>
+            <div className="attendance-list">
+              {reportLoading ? (
+                <div className="loading-message">Loading early leaves...</div>
+              ) : earlyLeaves.length === 0 ? (
+                <div className="empty-message">No early leaves</div>
+              ) : (
+                earlyLeaves.map((record, index) => (
+                  <div key={index} className="attendance-item">
+                    <div className="employee-info">
+                      <div className="employee-name">{record.username}</div>
+                      <div className="employee-email">{record.email}</div>
+                    </div>
+                    <div className="punch-time">
+                      <div className="time-label">Punched Out:</div>
+                      <div className="time-value">{formatTime(record.punchOut)}</div>
+                      <div className="date-value">{formatDate(record.punchOut)}</div>
                     </div>
                   </div>
                 ))
