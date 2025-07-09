@@ -169,14 +169,11 @@ const Register = ({ onLogin }) => {
                 className={`form-input password-input${formErrors.password ? ' input-error' : ''}`}
                 placeholder="Enter your password"
               />
-              {formErrors.password && (
-                <div className="field-error">{formErrors.password}</div>
-              )}
               <button
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
-              >
+                >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
             </div>
@@ -188,6 +185,9 @@ const Register = ({ onLogin }) => {
               Confirm Password
             </label>
             <div className="password-input-container">
+              {formErrors.password && (
+                <div className="field-error">{formErrors.password}</div>
+              )}
               <input
                 type={showConfirmPassword ? 'text' : 'password'}
                 name="confirmPassword"
